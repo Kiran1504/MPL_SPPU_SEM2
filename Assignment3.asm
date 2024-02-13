@@ -7,12 +7,14 @@
 %endmacro rw
 
 section .data
-count db 03
-arr dq 1645487569236547h, 9548123459878521h, 1246561231235874h
+count db 04h
+arr dq 1645487569236547h, 9548123459878521h, 1246561231235874h, 0000000000000000h
 pcount db 00
 ncount db 00 
-msg1 db "Count of positive numbers = "
-msg2 db "Count of negative numbers = "
+zcount db 00
+msg1 db " Count of positive numbers = "
+msg2 db " Count of negative numbers = "
+msg3 db " Count of no of zeroes is = "
 
 section .bss
 resultarr  resb 02
@@ -23,29 +25,37 @@ global _start
 _start:
              
 
-mov rbp, arr
+mov rdi, arr
 
 
 up: 
-   mov rax, [rbp]
-   cmp rax, 0000000000000000h
+   mov rax, [rdi]
+   cmp rax, 0h
    js next
+   jz zero
    inc byte[pcount]
-   jmp below 
+   jmp below
+zero: inc byte[zcount]
+jmp below
 next: inc byte[ncount]
 below:
-   inc rbp
+add rdi, 08
    dec byte[count]
 jnz up
 
 mov al, byte[pcount]
 mov byte[res], al
-rw 01, msg1, 28
+rw 01, msg1, 29
 call hta
 
 mov al, byte[ncount]
 mov byte[res], al
-rw 01, msg2, 28
+rw 01, msg2, 29
+call hta
+
+mov al, byte[zcount]
+mov byte[res], al
+rw 01, msg3, 28
 call hta
                         
 mov rax,60
