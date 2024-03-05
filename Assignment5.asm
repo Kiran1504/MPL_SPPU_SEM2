@@ -8,21 +8,23 @@
 
 section .data
 n1 dq 0000000000000002h
-n2 dq 0000000000000003h
+n2 dq 0000000000000004h
 entercode db 0Ah
-menu db "___MENU___",10,13,"1. Add",10,13,"2. Sub",10,13,"3. mul",10,13,"4. div",10,13,"5. exit",10,13,"Enter your choice: "
+menu db 10,"___MENU___",10,13,"1. Add",10,13,"2. Sub",10,13,"3. mul",10,13,"4. div",10,13,"5. exit",10,13,"Enter your choice: "
 mlen equ $-menu
 
 section .bss
 option resb 1
 ans resq 1
 result resb 16
+re resq 1
 count resb 1
 
 section .text
 global _start
 _start:
 
+restart:
 rw 01,menu, mlen
 rw 00, option, 1
 cmp byte[option], 31h
@@ -33,38 +35,33 @@ cmp byte[option], 33h
 jz multiplication
 cmp byte[option], 34h
 jz division
-jmp cont
+cmp byte[option], 35h
+jz cont
 
 addition:
 call addproc
 call hta
-jmp cont
+jmp restart
 
 subtraction:
 call subproc
 call hta
-jmp cont
+jmp restart
 
 multiplication:
 call mulproc
 call hta
-jmp cont
+jmp restart
 
 division:
-;call divproc
-;call hta
-mov ecx, dword[n1]
-mov rax, qword[n2]
-div ecx
-mov qword[ans], rax
-check:
-jmp cont
+call divproc
+call hta
+jmp restart
 
-rw 01, entercode, 1
-rw 01, option, 1
+
+
 
 cont:
-rw 01, entercode, 1
 mov rax,60
 mov rdi,00
 syscall
@@ -105,14 +102,21 @@ mov qword[ans], rax
 ret
 
 mulproc:
-mov rax, qword[n1]
+mov eax, dword[n1]
 mul qword[n2]
 mov qword[ans], rax
 ret
 
 divproc:
+xor rax, rax
+xor rdx, rdx
 mov rax, qword[n2]
-div qword[n1]
+div dword[n1]
 mov qword[ans], rax
+mov qword[re], rdx
+call hta
+rw 01, entercode, 01
+mov rdx, qword[re]
+mov qword[ans], rdx
 ret
 
